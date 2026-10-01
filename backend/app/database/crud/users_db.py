@@ -6,7 +6,10 @@ from app.services.supabase_service import supabase_client
 
 
 def _row_to_user(row: dict) -> UserRead:
-    return UserRead.model_validate(row)
+    # The users table stores password_hash, which must never leak into the
+    # public UserRead model (extra="forbid" would also raise on it).
+    safe_row = {k: v for k, v in row.items() if k != "password_hash"}
+    return UserRead.model_validate(safe_row)
 
 
 def create_user(user: UserCreate, *, password_hash: str) -> UserRead:

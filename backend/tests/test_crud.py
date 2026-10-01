@@ -618,3 +618,59 @@ class InterviewCrudTests(TestCase):
                 jobs_db.create_job(payload)
 
         self.assertNotIn("candidate PII", str(raised.exception))
+
+def user_row() -> dict[str, object]:
+    # Mirrors a real `select("*")` row from public.users, which always
+    # includes the password_hash column.
+    return {
+        "id": uuid4(),
+        "email": "admin@recruitment-v2.com",
+        "password_hash": "$2b$12$fakehashfortests",
+        "full_name": "HR Admin",
+        "role": "hr",
+        "is_active": True,
+        "created_at": datetime(2026, 10, 1, tzinfo=timezone.utc),
+    }
+
+
+class UserCrudTests(TestCase):
+    def test_row_to_user_strips_password_hash(self) -> None:
+        from app.database.crud import users_db
+
+        user = users_db._row_to_user(user_row())
+
+        self.assertEqual(user.email, "admin@recruitment-v2.com")
+        self.assertFalse(hasattr(user, "password_hash"))
+
+    def test_get_user_password_hash_by_email_returns_hash_separately(self) -> None:
+        from app.database.crud import users_db
+
+        row = user_row()
+        client = FakeSupabaseClient([[row]])
+
+        with patch.object(users_db, "supabase_client", client):
+            result = users_db.get_user_password_hash_by_email("admin@recruitment-v2.com")
+
+        assert result is not None
+        user, password_hash = result
+        self.assertEqual(user.id, row["id"])
+        self.assertEqual(password_hash, row["password_hash"])
+        self.assertFalse(hasattr(user, "password_hash"))
+
+    def test_create_user_strips_password_hash_from_insert_response(self) -> None:
+        from app.database.crud import users_db
+        from app.schemas.auth_schema import UserCreate
+
+        row = user_row()
+        client = FakeSupabaseClient([[row]])
+        payload = UserCreate(
+            email="admin@recruitment-v2.com",
+            password="supersecret123",
+            full_name="HR Admin",
+        )
+
+        with patch.object(users_db, "supabase_client", client):
+            user = users_db.create_user(payload, password_hash="$2b$12$fakehashfortests")
+
+        self.assertEqual(user.email, "admin@recruitment-v2.com")
+        self.assertFalse(hasattr(user, "password_hash"))
