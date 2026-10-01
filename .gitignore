@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.coverage
+
+# Node
+node_modules/
+dist/
+.vite/
+*.local
+
+# Env / secrets
+.env
+**/.env
+!.env.example
+credentials/
+secrets/
+*.json
+!package*.json
+
+# Recordings (local only)
+backend/recordings/
+recordings/
+
+# Misc
+.DS_Store
+.idea/
+.vscode/
+*.log

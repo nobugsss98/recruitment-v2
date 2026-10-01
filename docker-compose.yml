@@ -1,0 +1,27 @@
+services:
+  api:
+    build: ./backend
+    container_name: recruitment-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    environment:
+      RECORDINGS_DIR: /code/backend/recordings
+    volumes:
+      # Persist interview recordings outside the container.
+      - ./backend/recordings:/code/backend/recordings
+    restart: unless-stopped
+
+  web:
+    build: ./frontend
+    container_name: recruitment-web
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+    environment:
+      VITE_API_URL: http://localhost:8000
+    restart: unless-stopped
+
+# Supabase is hosted: no database service is defined here.
