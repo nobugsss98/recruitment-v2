@@ -1,0 +1,1 @@
+"""Centralized instructions and context builders for text-AI tasks."""

@@ -1,0 +1,1 @@
+"""Validated API data contracts for the recruitment backend."""

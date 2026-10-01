@@ -1,0 +1,1 @@
+"""Provider-neutral text AI service contracts and adapters."""

@@ -1,0 +1,1 @@
+"""Supabase CRUD operations for recruitment data."""
